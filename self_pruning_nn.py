@@ -10,12 +10,12 @@ Usage:
 
 Results are printed to stdout and plots saved as PNG files.
 """
+# ---------------------------------------------------------------------------
+# Importing prerequisites and relevant libraries
+# ---------------------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# FIX 1: matplotlib backend must be set BEFORE importing pyplot
-# ---------------------------------------------------------------------------
 import matplotlib
-matplotlib.use("Agg")  # non-interactive backend for headless environments
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 import torch
@@ -34,7 +34,6 @@ import os
 SEED = 42
 torch.manual_seed(SEED)
 np.random.seed(SEED)
-# FIX 3: Ensure full GPU reproducibility
 torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 
@@ -259,8 +258,6 @@ def get_cifar10_loaders(batch_size: int = 128):
         root=data_root, train=False, download=True, transform=test_transform
     )
 
-    # FIX 4: num_workers=0 as safe default; avoids multiprocessing issues on
-    # Windows and some container/CI environments. Increase if on Linux+GPU.
     num_workers = 0
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
                               num_workers=num_workers, pin_memory=(DEVICE.type == "cuda"))
@@ -374,7 +371,6 @@ def train(
     train_loader, test_loader = get_cifar10_loaders(batch_size)
     model = SelfPruningNet().to(DEVICE)
 
-    # FIX 5: Separate parameter groups so weight_decay (L2) does NOT apply to
     # gate_scores — preserving pure L1-only pressure from the sparsity loss.
     gate_params  = [p for n, p in model.named_parameters() if "gate" in n]
     other_params = [p for n, p in model.named_parameters() if "gate" not in n]
